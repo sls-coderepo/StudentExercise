@@ -42,7 +42,7 @@ namespace StudentExercises.API.Controllers
                                         s.SlackHandle AS StudentSlackHandle  FROM
                                         Instructor i INNER JOIN Cohort c ON i.CohortId = c.Id
                                         LEFT JOIN Student s ON c.Id = s.CohortId ";
-                    SqlDataReader reader = cmd.ExecuteReader();
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
                     List<Instructor> instructors = new List<Instructor>();
 
                     while (reader.Read())

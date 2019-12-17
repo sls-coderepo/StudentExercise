@@ -35,21 +35,21 @@ namespace StudentExercises.API.Controllers
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
-                using(SqlCommand cmd = conn.CreateCommand())
+                using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"SELECT s.Id AS StudentId, s.FirstName, s.LastName, s.SlackHandle, c.Id AS CohortId, c.Name AS CohortName, e.Id AS ExerciseId, e.Name AS ExerciseName, e.Language FROM Student s 
                                         INNER JOIN Cohort c ON s.CohortId = c.Id
                                         LEFT JOIN StudentExercise se ON s.Id = se.StudentId
                                         LEFT JOIN Exercise e ON e.Id = se.ExerciseId ";
-                    SqlDataReader reader = cmd.ExecuteReader();
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
                     List<Student> students = new List<Student>();
 
-                    while(reader.Read())
+                    while (reader.Read())
                     {
                         var studentId = reader.GetInt32(reader.GetOrdinal("StudentId"));
                         var studentAlreadyAdded = students.FirstOrDefault(s => s.Id == studentId);
                         var hasExercise = !reader.IsDBNull(reader.GetOrdinal("ExerciseId"));
-                       
+
                         if (studentAlreadyAdded == null)
                         {
                             Student student = new Student
@@ -68,10 +68,10 @@ namespace StudentExercises.API.Controllers
                                     Instructors = new List<Instructor>()
 
                                 }
-                               
+
                             };
                             students.Add(student);
-                           
+
                             if (hasExercise)
                             {
 
@@ -85,7 +85,7 @@ namespace StudentExercises.API.Controllers
                         }
                         else
                         {
-                            if(hasExercise)
+                            if (hasExercise)
                             {
                                 studentAlreadyAdded.Exercises.Add(new Exercise()
                                 {
@@ -99,9 +99,9 @@ namespace StudentExercises.API.Controllers
                     reader.Close();
                     return Ok(students);
                 }
-               
+
             }
-           
+
         }
 
         [HttpGet]
@@ -131,7 +131,7 @@ namespace StudentExercises.API.Controllers
                         cmd.CommandText += " AND LastName LIKE @lastName";
                         cmd.Parameters.Add(new SqlParameter("@lastName", "%" + lastName + "%"));
                     }
-                    SqlDataReader reader = cmd.ExecuteReader();
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
                     List<Student> allStudents = new List<Student>();
                     while (reader.Read())
                     {
@@ -152,7 +152,7 @@ namespace StudentExercises.API.Controllers
         }
 
         [Route("studentWithExercise")]
-        public async Task<IActionResult> GetAllStudentsWithExercises(int exerciseId)
+        public async Task<IActionResult> GetAllStudentsWithExercises(string? include)
         {
             using (SqlConnection conn = Connection)
             {
@@ -164,12 +164,8 @@ namespace StudentExercises.API.Controllers
                                         LEFT JOIN StudentExercise se ON s.Id = se.StudentId
                                         LEFT JOIN Exercise e ON e.Id = se.ExerciseId 
                                         WHERE 1=1";
-                    if (exerciseId != null)
-                    {
-                        cmd.CommandText += " AND ExerciseId = @exerciseId";
-                        cmd.Parameters.Add(new SqlParameter("@exerciseId", exerciseId));
-                    }
-                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
                     List<Student> students = new List<Student>();
 
                     while (reader.Read())
@@ -199,29 +195,36 @@ namespace StudentExercises.API.Controllers
 
                             };
                             students.Add(student);
-
-                            if (hasExercise)
+                            if (include != null && include == "exercise")
                             {
-
-                                student.Exercises.Add(new Exercise()
+                                if (hasExercise)
                                 {
-                                    Id = reader.GetInt32(reader.GetOrdinal("ExerciseId")),
-                                    Name = reader.GetString(reader.GetOrdinal("ExerciseName")),
-                                    Language = reader.GetString(reader.GetOrdinal("Language"))
-                                });
+
+                                    student.Exercises.Add(new Exercise()
+                                    {
+                                        Id = reader.GetInt32(reader.GetOrdinal("ExerciseId")),
+                                        Name = reader.GetString(reader.GetOrdinal("ExerciseName")),
+                                        Language = reader.GetString(reader.GetOrdinal("Language"))
+                                    });
+                                }
                             }
+
                         }
                         else
                         {
-                            if (hasExercise)
+                            if (include != null && include == "exercise")
                             {
-                                studentAlreadyAdded.Exercises.Add(new Exercise()
+                                if (hasExercise)
                                 {
-                                    Id = reader.GetInt32(reader.GetOrdinal("ExerciseId")),
-                                    Name = reader.GetString(reader.GetOrdinal("ExerciseName")),
-                                    Language = reader.GetString(reader.GetOrdinal("Language"))
-                                });
+                                    studentAlreadyAdded.Exercises.Add(new Exercise()
+                                    {
+                                        Id = reader.GetInt32(reader.GetOrdinal("ExerciseId")),
+                                        Name = reader.GetString(reader.GetOrdinal("ExerciseName")),
+                                        Language = reader.GetString(reader.GetOrdinal("Language"))
+                                    });
+                                }
                             }
+
                         }
                     }
                     reader.Close();
