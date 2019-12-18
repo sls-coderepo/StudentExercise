@@ -95,7 +95,7 @@ namespace StudentExercises.API.Controllers
         //Get Exercise with query parameter
         [HttpGet]
         [Route("ExercisesWithStudents")]
-        public async Task<IActionResult> GetAllExercisesWithStudents(string? include)
+        public async Task<IActionResult> GetAllExercisesWithStudents(string include)
         {
             using (SqlConnection conn = Connection)
             {
@@ -130,12 +130,12 @@ namespace StudentExercises.API.Controllers
                                
                             };
                             exercises.Add(exercise);
-                            if (include != null && include == "student")
+                            if (include != null && include == "students")
                             {
                                 if (hasStudent)
                                 {
-
-                                    exercise.Students.Add(new Student()
+                                    Student student = new Student()
+                                    //exercise.Students.Add(new Student()
                                     {
                                         Id = reader.GetInt32(reader.GetOrdinal("StudentId")),
                                         FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
@@ -149,20 +149,22 @@ namespace StudentExercises.API.Controllers
                                             Name = reader.GetString(reader.GetOrdinal("CohortName")),
                                             Students = new List<Student>(),
                                             Instructors = new List<Instructor>()
-
+                                            
                                         }
-                                    });
+                                    };
+                                    exercise.Students.Add(student);
                                 }
                             }
 
                         }
                         else
                         {
-                            if (include != null && include == "exercise")
+                            if (include != null && include == "students")
                             {
                                 if (hasStudent)
                                 {
-                                    exerciseAlreadyAdded.Students.Add(new Student()
+                                    Student student = new Student()
+                                    //exerciseAlreadyAdded.Students.Add(new Student()
                                     {
                                         Id = reader.GetInt32(reader.GetOrdinal("StudentId")),
                                         FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
@@ -178,7 +180,8 @@ namespace StudentExercises.API.Controllers
                                             Instructors = new List<Instructor>()
 
                                         }
-                                    });
+                                    };
+                                    exerciseAlreadyAdded.Students.Add(student);
                                 }
                             }
 

@@ -150,9 +150,9 @@ namespace StudentExercises.API.Controllers
                 }
             }
         }
-
+        [HttpGet]
         [Route("studentWithExercise")]
-        public async Task<IActionResult> GetAllStudentsWithExercises(string? include)
+        public async Task<IActionResult> GetAllStudentsWithExercises(string include)
         {
             using (SqlConnection conn = Connection)
             {
