@@ -199,7 +199,6 @@ namespace StudentExercises.API.Controllers
                             {
                                 if (hasExercise)
                                 {
-
                                     student.Exercises.Add(new Exercise()
                                     {
                                         Id = reader.GetInt32(reader.GetOrdinal("ExerciseId")),
